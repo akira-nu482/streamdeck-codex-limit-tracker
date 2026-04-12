@@ -1,0 +1,26 @@
+{
+  "name": "codex-limit-tracker",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Stream Deck plugin that displays Codex rate limit usage via Codex app-server.",
+  "scripts": {
+    "build": "rollup -c",
+    "watch": "rollup -cw",
+    "plugin:dev": "streamdeck dev",
+    "plugin:link": "streamdeck link dev.akira.codex-limit-tracker.sdPlugin",
+    "plugin:restart": "streamdeck restart dev.akira.codex-limit-tracker",
+    "plugin:validate": "streamdeck validate dev.akira.codex-limit-tracker.sdPlugin"
+  },
+  "dependencies": {
+    "@elgato/streamdeck": "^2.0.4"
+  },
+  "devDependencies": {
+    "@elgato/cli": "^1.7.3",
+    "@rollup/plugin-commonjs": "^28.0.6",
+    "@rollup/plugin-node-resolve": "^16.0.3",
+    "@rollup/plugin-typescript": "^12.1.4",
+    "@types/node": "^24.6.0",
+    "rollup": "^4.52.4",
+    "typescript": "^5.9.3"
+  }
+}

@@ -1,0 +1,46 @@
+{
+  "$schema": "https://schemas.elgato.com/streamdeck/plugins/manifest.json",
+  "SDKVersion": 2,
+  "Name": "Codex Limit Tracker",
+  "Description": "Displays Codex usage and reset time on a Stream Deck key.",
+  "Version": "0.1.0.0",
+  "Author": "Akira",
+  "Icon": "static/imgs/plugin/icon",
+  "Category": "Codex Limit Tracker",
+  "CategoryIcon": "static/imgs/plugin/category-icon",
+  "CodePath": "bin/plugin.js",
+  "UUID": "dev.akira.codex-limit-tracker",
+  "Nodejs": {
+    "Version": "20",
+    "Debug": "enabled"
+  },
+  "Software": {
+    "MinimumVersion": "6.6"
+  },
+  "OS": [
+    {
+      "Platform": "windows",
+      "MinimumVersion": "10"
+    },
+    {
+      "Platform": "mac",
+      "MinimumVersion": "13"
+    }
+  ],
+  "Actions": [
+    {
+      "UUID": "dev.akira.codex-limit-tracker.usage",
+      "Name": "Usage Tile",
+      "Tooltip": "Shows Codex remaining rate-limit percentage and reset time.",
+      "Icon": "static/imgs/actions/usage/icon",
+      "Controllers": [
+        "Keypad"
+      ],
+      "States": [
+        {
+          "Image": "static/imgs/actions/usage/key"
+        }
+      ]
+    }
+  ]
+}

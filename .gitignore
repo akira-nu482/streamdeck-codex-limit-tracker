@@ -1,0 +1,16 @@
+node_modules/
+
+# Packaged release artifact
+*.streamDeckPlugin
+
+# Build metadata not needed in the public repo
+dev.akira.codex-limit-tracker.sdPlugin/bin/*.map
+
+# OS/editor noise
+.DS_Store
+Thumbs.db
+*.log
+.env
+.env.*
+.idea/
+.vscode/
