@@ -8326,10 +8326,7 @@ function pathCommandCandidates() {
 }
 function platformCandidates() {
     if (node_os.platform() === "win32") {
-        return [
-            path.join("C:\\Program Files\\WindowsApps\\OpenAI.Codex_26.409.1734.0_x64__2p2nqsd0c76g0", "app", "resources", "codex.exe"),
-            path.join(node_os.homedir(), "AppData", "Local", "Packages", "OpenAI.Codex_2p2nqsd0c76g0", "LocalCache", "Local", "Microsoft", "WinGet", "Links", "codex.exe"),
-        ];
+        return windowsPlatformCandidates();
     }
     if (node_os.platform() === "darwin") {
         return [
@@ -8340,6 +8337,38 @@ function platformCandidates() {
         ];
     }
     return [];
+}
+function windowsPlatformCandidates() {
+    return uniqueCandidates([
+        path.join(node_os.homedir(), "AppData", "Local", "Packages", "OpenAI.Codex_2p2nqsd0c76g0", "LocalCache", "Local", "Microsoft", "WinGet", "Links", "codex.exe"),
+        process.env.LOCALAPPDATA
+            ? path.join(process.env.LOCALAPPDATA, "Microsoft", "WinGet", "Links", "codex.exe")
+            : undefined,
+        ...windowsAppxPackageCandidates(),
+    ]);
+}
+function windowsAppxPackageCandidates() {
+    const probe = node_child_process.spawnSync("powershell.exe", [
+        "-NoProfile",
+        "-Command",
+        "(Get-AppxPackage -Name OpenAI.Codex -ErrorAction SilentlyContinue | " +
+            "Sort-Object Version -Descending | " +
+            "Select-Object -ExpandProperty InstallLocation)",
+    ], {
+        encoding: "utf8",
+        timeout: 5000,
+    });
+    if (probe.status !== 0) {
+        return [];
+    }
+    return probe.stdout
+        .split(/\r?\n/)
+        .map((line) => line.trim())
+        .filter(Boolean)
+        .map((installLocation) => path.join(installLocation, "app", "resources", "codex.exe"));
+}
+function uniqueCandidates(candidates) {
+    return [...new Set(candidates.filter((candidate) => Boolean(candidate)))];
 }
 
 const SIZE = 144;

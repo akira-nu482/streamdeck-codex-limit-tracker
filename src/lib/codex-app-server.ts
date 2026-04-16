@@ -468,27 +468,7 @@ function pathCommandCandidates(): string[] {
 
 function platformCandidates(): string[] {
   if (platform() === "win32") {
-    return [
-      join(
-        "C:\\Program Files\\WindowsApps\\OpenAI.Codex_26.409.1734.0_x64__2p2nqsd0c76g0",
-        "app",
-        "resources",
-        "codex.exe",
-      ),
-      join(
-        homedir(),
-        "AppData",
-        "Local",
-        "Packages",
-        "OpenAI.Codex_2p2nqsd0c76g0",
-        "LocalCache",
-        "Local",
-        "Microsoft",
-        "WinGet",
-        "Links",
-        "codex.exe",
-      ),
-    ];
+    return windowsPlatformCandidates();
   }
 
   if (platform() === "darwin") {
@@ -501,4 +481,57 @@ function platformCandidates(): string[] {
   }
 
   return [];
+}
+
+function windowsPlatformCandidates(): string[] {
+  return uniqueCandidates([
+    join(
+      homedir(),
+      "AppData",
+      "Local",
+      "Packages",
+      "OpenAI.Codex_2p2nqsd0c76g0",
+      "LocalCache",
+      "Local",
+      "Microsoft",
+      "WinGet",
+      "Links",
+      "codex.exe",
+    ),
+    process.env.LOCALAPPDATA
+      ? join(process.env.LOCALAPPDATA, "Microsoft", "WinGet", "Links", "codex.exe")
+      : undefined,
+    ...windowsAppxPackageCandidates(),
+  ]);
+}
+
+function windowsAppxPackageCandidates(): string[] {
+  const probe = spawnSync(
+    "powershell.exe",
+    [
+      "-NoProfile",
+      "-Command",
+      "(Get-AppxPackage -Name OpenAI.Codex -ErrorAction SilentlyContinue | " +
+        "Sort-Object Version -Descending | " +
+        "Select-Object -ExpandProperty InstallLocation)",
+    ],
+    {
+      encoding: "utf8",
+      timeout: 5000,
+    },
+  );
+
+  if (probe.status !== 0) {
+    return [];
+  }
+
+  return probe.stdout
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .map((installLocation) => join(installLocation, "app", "resources", "codex.exe"));
+}
+
+function uniqueCandidates(candidates: Array<string | undefined>): string[] {
+  return [...new Set(candidates.filter((candidate): candidate is string => Boolean(candidate)))];
 }
