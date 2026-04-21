@@ -8228,7 +8228,31 @@ function normalizeRateLimits(result, source) {
             fetchedAt: Date.now(),
         };
     }
-    if (!result.rateLimit) {
+    if ("rateLimits" in result) {
+        const primaryLimit = result.rateLimits ??
+            Object.values(result.rateLimitsByLimitId ?? {})[0];
+        if (!primaryLimit) {
+            throw new Error("Codex app-server returned an unexpected rate-limit payload.");
+        }
+        const primaryWindow = normalizeWindowCurrent(primaryLimit.primary, "5h");
+        const secondaryWindow = normalizeWindowCurrent(primaryLimit.secondary, "7d");
+        return {
+            source,
+            planType: primaryLimit.planType,
+            selectedWindow: pickSelectedWindow(primaryWindow, secondaryWindow),
+            primaryWindow,
+            secondaryWindow,
+            additionalRateLimits: Object.values(result.rateLimitsByLimitId ?? {})
+                .filter((limit) => limit.limitId !== primaryLimit.limitId)
+                .map((limit) => ({
+                limitName: limit.limitName ?? limit.limitId,
+                primaryWindow: normalizeWindowCurrent(limit.primary, "5h"),
+                secondaryWindow: normalizeWindowCurrent(limit.secondary, "7d"),
+            })),
+            fetchedAt: Date.now(),
+        };
+    }
+    if (!("rateLimit" in result) || !result.rateLimit) {
         throw new Error("Codex app-server returned an unexpected rate-limit payload.");
     }
     const primaryWindow = normalizeWindowCamel(result.rateLimit.primaryWindow, "5h");
@@ -8266,6 +8290,18 @@ function normalizeWindowCamel(window, label) {
         resetAt: window.resetAt,
         resetAfterSeconds: window.resetAfterSeconds,
         limitWindowSeconds: window.limitWindowSeconds,
+    };
+}
+function normalizeWindowCurrent(window, label) {
+    const resetAt = window.resetsAt;
+    const resetAfterSeconds = Math.max(0, resetAt - Math.floor(Date.now() / 1000));
+    return {
+        label,
+        usedPercent: clampPercent(window.usedPercent),
+        remainingPercent: clampPercent(100 - window.usedPercent),
+        resetAt,
+        resetAfterSeconds,
+        limitWindowSeconds: Math.max(0, Math.round(window.windowDurationMins * 60)),
     };
 }
 function pickSelectedWindow(primaryWindow, secondaryWindow) {
